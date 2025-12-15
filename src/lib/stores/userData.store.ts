@@ -11,8 +11,11 @@ type UserStoreType = {
     name: string;
     gem: number;
     item: {
-        [key: string]: CharacterItemType[]
-    }
+        [key: string]: CharacterItemType[];
+    };
+    currentItem: {
+        [key: string]: CharacterItemType;
+    };
 }
 
 
@@ -22,11 +25,19 @@ function createUserStore() {
     return {
         subscribe,
         setStore: (data: UserStoreType) => set(data),
-        updateGem: (value: number) => {
+        addGem: (value: number) => {
             update(store => {
                 if (!store) return store;
                 
                 store.gem += value;
+                return store;
+            });
+        },
+        deGem: (value: number) => {
+            update(store => {
+                if (!store) return store;
+
+                store.gem -= value;
                 return store;
             });
         },
@@ -36,7 +47,15 @@ function createUserStore() {
 
                 store.item[slot].push(item);
                 return store;
-            })
+            });
+        },
+        updateCurrentItem: (slot: string, item: CharacterItemType) => {
+            update(store => {
+                if (!store) return store;
+
+                store.currentItem[slot] = item;
+                return store;
+            });
         }
     }
 }

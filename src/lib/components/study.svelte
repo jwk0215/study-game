@@ -205,7 +205,7 @@
 
             if (!$studyDataStore[id].clear) {
                 studyDataStore.updateState(id, true, clearState);
-                if (clearState) userDataStore.updateGem($studyStore.gem);
+                if (clearState) userDataStore.addGem($studyStore.gem);
             }
 
             studyEndPopupState = true;

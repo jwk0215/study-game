@@ -4,7 +4,7 @@
     import unityStore from '$stores/unity.store';
     import userDataStore from '$stores/userData.store';
     import gemIcon from "$assets/gem-icon.png";
-    import { onMount } from 'svelte';
+    import { onDestroy } from 'svelte';
 
 
 
@@ -18,12 +18,16 @@
             const userItems = $userDataStore.item[currentSlotState];
             let flag = true;
             
+            // 보유중인지 확인
             for (const item of userItems) {
                 if (item.id === currentItemState.id) {
                     flag = false;
                     break;
                 }
             }
+
+            // gem이 부족한지 확인
+            if ($userDataStore.gem < currentItemState.price) flag = false;
 
             return flag;
         } else {
@@ -33,12 +37,88 @@
 
 
     /**
+     * item 장착
+     * @param itemName 아이템 프리팹 이름
+     */
+    function itemEquip(itemName: string) {
+        switch (currentSlotState) {
+            case "head":
+                $unityStore.instance?.SendMessage(
+                    "Character",
+                    "HeadSlotEquip",
+                    itemName
+                );
+                break;
+        
+            case "body":
+                $unityStore.instance?.SendMessage(
+                    "Character",
+                    "BodySlotEquip",
+                    itemName
+                );
+                break;
+        
+            default:
+                break;
+        }
+    }
+
+
+    /**
+     * item 장착 해제
+     */
+    function itemUnEquip() {
+        switch (currentSlotState) {
+            case "head":
+                $unityStore.instance?.SendMessage("Character", "HeadSlotUnEquip");
+                break;
+                
+            case "body":
+                $unityStore.instance?.SendMessage("Character", "HeadSlotUnEquip");
+                break;
+        
+            default:
+                break;
+        }
+    }
+
+
+    /**
+     * 원래 item으로 reset
+     */
+    function itemReset() {
+        if (!$userDataStore) return;
+        const userItem = $userDataStore.currentItem[currentSlotState];
+
+        if (Object.keys(userItem).length > 0) itemEquip(userItem.prefabName);
+        else itemUnEquip();
+    }
+
+
+    /**
+     * item reset all
+     */
+    function itemResetAll() {
+        if (!$userDataStore) return;
+        const headItem = $userDataStore.currentItem["head"];
+        const bodyItem = $userDataStore.currentItem["body"];
+        
+        if (Object.keys(headItem).length > 0) $unityStore.instance?.SendMessage("Character", "HeadSlotEquip", headItem.prefabName);
+        else $unityStore.instance?.SendMessage("Character", "HeadSlotUnEquip");
+        
+        if (Object.keys(bodyItem).length > 0) $unityStore.instance?.SendMessage("Character", "BodySlotEquip", bodyItem.prefabName);
+        else $unityStore.instance?.SendMessage("Character", "BodySlotUnEquip");
+    }
+
+
+    /**
      * currentTabState setter
      * @param tab "own" | "shop"
      */
     function setCurrentTabState(tab: "own" | "shop") {
         currentTabState = tab;
         currentItemState = null;
+        itemReset();
     }
 
 
@@ -49,7 +129,7 @@
     function setCurrentSlotState(slot: "head" | "body") {
         currentSlotState = slot;
         currentItemState = null;
-        $unityStore.instance?.SendMessage("Character", "SetCurrentSlot", slot);
+        itemReset();
     }
 
 
@@ -58,23 +138,42 @@
      * @param item CharacterItemType
      */
     function setCurrentItemState(item: CharacterItemType) {
-        if (currentItemState?.id === item.id) {
-            currentItemState = null;
-            $unityStore.instance?.SendMessage("Character", "UnEquip");
+        // 내 아이템 탭인 경우
+        if (currentTabState === "own") {
+            itemEquip(item.prefabName);
+            userDataStore.updateCurrentItem(currentSlotState, item);
 
-        } else {
-            currentItemState = item;
-            $unityStore.instance?.SendMessage("Character", "Equip", item.prefabName);
+        // 상점 탭인 경우
+        } else if (currentTabState === "shop") {
+            if (!currentItemState || currentItemState.id !== item.id) {
+                currentItemState = item;
+                itemEquip(item.prefabName);
+            }
         }
     }
 
 
     /**
-     * onMount()
+     * item 구매
+     */
+    function buy() {
+        if (
+            !currentItemState ||
+            !$userDataStore ||
+            $userDataStore.gem < currentItemState.price
+        ) return;
+
+        userDataStore.deGem(currentItemState.price);
+        userDataStore.updateItem(currentSlotState, currentItemState);
+        userDataStore.updateCurrentItem(currentSlotState, currentItemState);
+    }
+
+
+    /**
+     * onDestroy()
     */
-    onMount(() => {
-        console.log(currentSlotState);
-        $unityStore.instance?.SendMessage("Character", "SetCurrentSlot", currentSlotState);
+    onDestroy(() => {
+        itemResetAll();
     });
 </script>
 
@@ -155,8 +254,8 @@
         {#if $characterItemShopStore && currentTabState === "shop"}
         {@render itemList($characterItemShopStore[currentSlotState])}
 
-        <button class="item-btn" class:disable={!buyState}>
-            구매하기
+        <button class="item-btn" class:disable={!buyState} onclick={buy}>
+            구매 및 장착하기
         </button>
         {/if}
     </div>

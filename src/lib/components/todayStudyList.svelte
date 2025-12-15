@@ -9,6 +9,7 @@
     import studyStore, { type StudyStoreType } from "$stores/study.store";
     import studyDataStore from "$stores/studyData.store";
     import { fade, fly } from "svelte/transition";
+    import unityStore from "$stores/unity.store";
 
 
 
@@ -32,6 +33,11 @@
         loadingStore.loadingOn();
         studyStore.setStore(data);
         setTsViewState(false);
+
+        if ($unityStore.mode !== "default") {
+            $unityStore.instance?.SendMessage("Main Camera", "SetMode", "default");
+            unityStore.updateMode();
+        }
     }
 </script>
 
