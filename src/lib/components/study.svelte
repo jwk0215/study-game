@@ -17,6 +17,7 @@
     let iframeEle = $state<HTMLIFrameElement | null>(null);     // 학습 페이지 iframe element
     let progressState = $state("loading");                      // 학습 상태 state
     let userActionState = $state(false);                        // 버튼 클릭 가능여부 state
+    let bgmState = $state(true);                                // bgm state
     let closePopupState = $state(false);                        // 종료 팝업 state
     let stepState = $state(0);                                  // step state
     let stepClearState = $state(false);                         // step clear state
@@ -179,6 +180,11 @@
             case "studyEnd":
                 closeEvt();
                 break;
+
+            case "bgm":
+                bgmState ? SoundUtil.mute("bgm", true) : SoundUtil.mute("bgm", false);
+                bgmState = !bgmState;
+                break;
         
             default:
                 break;
@@ -245,6 +251,10 @@
                     progressState = "playing";
                     sendMsgToIframe("start");
                     userActionState = true;
+
+                    setTimeout(() => {
+                        SoundUtil.playSound("bgm", true);
+                    }, 500);
                 }, 1800);
                 break;
         
@@ -319,6 +329,8 @@
             iframeEle.remove();
             iframeEle = null;
         }
+
+        SoundUtil.stop("bgm");
     });
 </script>
 
@@ -326,8 +338,6 @@
 
 {#if $studyStore}
 <div id="study-wrapper" bind:this={wrapperEl}>
-    <!-- <iframe id="study-frame" frameborder="0" title="학습 페이지" bind:this={iframeEle}></iframe> -->
-    
     <!-- 시작 애니메이션 -->
     {#if progressState === "start"}
     <div id="start-img-wrapper">
@@ -338,6 +348,11 @@
     {#if incorrectEffectState}
     <div id="incorrect-effect"></div>
     {/if}
+
+    <!-- 배경음 -->
+    <button id="bgm-btn" class:mute={!bgmState} onclick={() => clickEvt("bgm")}>
+        배경음
+    </button>
     
     <!-- 닫기 관련 -->
     <button id="close-popup-btn" onclick={() => setClosePopupState(true)}>
@@ -561,6 +576,26 @@
         width: 100%;
         height: 100%;
         background: url(../assets/incorrect_frame.png) center / 100% 100% no-repeat;
+    }
+
+
+    /* 배경음 버튼 */
+    #bgm-btn {
+        position: absolute;
+        left: 0.7rem;
+        top: 4rem;
+        z-index: 90;
+        width: 5rem;
+        aspect-ratio: 1;
+        text-indent: -9999em;
+        border-radius: 50%;
+        background-image: url(../assets/study-btns.png);
+        background-position-x: -270px;
+        background-position-y: -6px;
+        cursor: pointer;
+    }
+    #bgm-btn.mute {
+        background-position-x: -396px;
     }
 
 

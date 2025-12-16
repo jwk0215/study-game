@@ -120,6 +120,10 @@
 
 
 
+<svelte:head>
+    <title>Title</title>
+</svelte:head>
+
 <div id="layout">
     {#if $loadingStore}
     <Loading />
@@ -133,6 +137,7 @@
 
     {#if !errorState}
     <Header />
+    
     <main id="main">
         <canvas id="canvas" bind:this={canvasEl}></canvas>
 
