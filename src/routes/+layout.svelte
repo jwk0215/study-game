@@ -1,16 +1,34 @@
 <script lang="ts">
+    import Loading from '$components/loading.svelte';
     import Login from '$components/login.svelte';
     import Popup from '$components/popup.svelte';
     import Toast from '$components/toast.svelte';
+    import loadingStore from '$stores/loading.store';
     import userStore from '$stores/user.store';
+    import { apiFetch } from '$utils/api';
+    import { onMount } from 'svelte';
 
 
 
 
 	// props
 	let { children } = $props();
-</script>
 
+
+	/**
+	 * onMount()
+	*/
+	onMount(async () => {
+		const res = await apiFetch("GET", "/login/check");
+
+		if (res?.ok) {
+			const result = await res.json();
+			userStore.setStore(result.data.user);
+		} else {
+			loadingStore.off();
+		}
+	});
+</script>
 
 
 
@@ -25,8 +43,8 @@
 	
 	<Popup />
 	<Toast />
+	<Loading />
 </div>
-
 
 
 

@@ -5,7 +5,7 @@ import { writable } from "svelte/store";
 
 
 interface UserType {
-
+    nickname: string;
 }
 
 
@@ -16,7 +16,8 @@ function createUserStore() {
         subscribe,
         setStore: (data: UserType) => {
             set(data);
-        }
+        },
+        clearStore: () => set(null)
     }
 }
 export default createUserStore();

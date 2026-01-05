@@ -1,6 +1,7 @@
 <script lang="ts">
     import popupStore from "$stores/popup.store";
     import toastStore from "$stores/toast.store";
+    import userStore from "$stores/user.store";
     import { apiFetch } from "$utils/api";
     import Find from "./in-popup/find.svelte";
     import Join from "./in-popup/join.svelte";
@@ -22,9 +23,6 @@
      * @param e SubmitEvent
      */
     async function login(e: SubmitEvent) {
-        idValue = '';
-        pwValue = '';
-
         const res = await apiFetch(
             "POST",
             "/login",
@@ -33,6 +31,22 @@
                 pw: pwValue
             })
         );
+        const result = await res.json();
+
+        idValue = '';
+        pwValue = '';
+
+        if (!res.ok) {
+            toastStore.bake({
+                type: "warning",
+                message: result.message
+            });
+            return;
+        }
+
+        userStore.setStore({
+            nickname: result.data.nickname
+        });
     }
 
 
