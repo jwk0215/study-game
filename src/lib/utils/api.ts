@@ -15,11 +15,11 @@ export async function apiFetch(
 ) {
     const option: RequestInit = {
         method,
-        headers: { "Content-Type": "application/json" },
         credentials: "include",
         body
     };
 
+    if (body) option.headers = { ...option.headers, ["Content-Type"]: "application/json" };
     if (signal) option.signal = signal;
     
     const res = await fetch(
@@ -41,7 +41,7 @@ export async function apiFetch(
         userStore.clearStore();
         toastStore.bake({
             type: "info",
-            message: "로그인 만료"
+            message: "로그인이 필요합니다."
         });
         return;
     }

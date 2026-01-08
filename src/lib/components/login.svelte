@@ -1,4 +1,5 @@
 <script lang="ts">
+    import loadingStore from "$stores/loading.store";
     import popupStore from "$stores/popup.store";
     import toastStore from "$stores/toast.store";
     import userStore from "$stores/user.store";
@@ -31,12 +32,12 @@
                 pw: pwValue
             })
         );
-        const result = await res.json();
+        const result = await res?.json();
 
         idValue = '';
         pwValue = '';
 
-        if (!res.ok) {
+        if (!res?.ok) {
             toastStore.bake({
                 type: "warning",
                 message: result.message
@@ -44,9 +45,8 @@
             return;
         }
 
-        userStore.setStore({
-            nickname: result.data.nickname
-        });
+        loadingStore.on();
+        userStore.setStore(result.data.user);
     }
 
 

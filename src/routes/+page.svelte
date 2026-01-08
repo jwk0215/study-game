@@ -1,24 +1,31 @@
 <script lang="ts">
-    import loadingStore from "$stores/loading.store";
+    import Character from "$components/character.svelte";
+    import Unity from "$components/unity.svelte";
+    import userStore from "$stores/user.store";
     import { onMount } from "svelte";
 
 
 
-
-    /**
-     * onMount()
-    */
     onMount(() => {
-        loadingStore.off();
-    });
+        console.log($userStore);
+    })
 </script>
 
 
 
-
+<div id="page-wrapper">
+    {#if $userStore?.c_type}
+    <Unity />
+    {:else}
+    <Character />
+    {/if}
+</div>
 
 
 
 <style>
-
+    #page-wrapper {
+        width: 100%;
+        height: 100%;
+    }
 </style>

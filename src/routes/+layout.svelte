@@ -3,6 +3,7 @@
     import Login from '$components/login.svelte';
     import Popup from '$components/popup.svelte';
     import Toast from '$components/toast.svelte';
+    import UserInfo from '$components/userInfo.svelte';
     import loadingStore from '$stores/loading.store';
     import userStore from '$stores/user.store';
     import { apiFetch } from '$utils/api';
@@ -35,6 +36,7 @@
 <div id="app">
 	<div id="page-wrapper">
 		{#if $userStore}
+		<UserInfo />
 		{@render children?.()}
 		{:else}
 		<Login />
